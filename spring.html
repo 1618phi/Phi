@@ -25,9 +25,14 @@
   <div class="enigma-block">
     <div class="enigma-plain"></div>
 
-    <div class="enigma-cipher">
+    <div class="enigma-cipher" id="cipher-display">
       Od ulvsrvwd è vhpsuh vwdwd txl.<br>
       Jxdugd gl qxryr.
+    </div>
+
+    <div class="cipher-slider-row">
+      <input type="range" id="cipher-slider" min="0" max="25" value="0" step="1">
+      <span class="cipher-slider-label">SHIFT: <span id="cipher-slider-value">0</span></span>
     </div>
 
     <div class="enigma-numbers">
@@ -90,6 +95,19 @@
   );
 
   markSecretWord('.enigma-plain', POEM_PLAIN, 'IGNORARE', POEM_PLAIN.length * 40 + 1500);
+
+  const CIPHER_RAW = "Od ulvsrvwd è vhpsuh vwdwd txl.\nJxdugd gl qxryr.";
+
+  function renderCipherShift(shift) {
+    document.getElementById('cipher-display').innerHTML =
+      caesarDecode(CIPHER_RAW, shift).replace(/\n/g, '<br>');
+  }
+
+  document.getElementById('cipher-slider').addEventListener('input', e => {
+    const val = parseInt(e.target.value, 10);
+    document.getElementById('cipher-slider-value').textContent = val;
+    renderCipherShift(val);
+  });
 </script>
 
 </body>
