@@ -205,6 +205,38 @@ button:hover {
   border-left: 1px solid var(--dim);
 }
 
+.cipher-slider-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.cipher-slider-row input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2px;
+  background: var(--dim2);
+  outline: none;
+}
+.cipher-slider-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  background: var(--primary);
+  box-shadow: 0 0 8px var(--glow);
+  cursor: pointer;
+}
+.cipher-slider-row input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px;
+  background: var(--primary);
+  border: none;
+  box-shadow: 0 0 8px var(--glow);
+  cursor: pointer;
+}
+.cipher-slider-label {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px; letter-spacing: 1px; color: var(--dim2);
+  white-space: nowrap;
+}
+.cipher-slider-label span { color: var(--primary); }
+
 .char { display: inline; color: var(--dim2); }
 .char.decoded { color: #e8e0d0; }
 .char.decoding {
