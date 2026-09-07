@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERMINAL // PRIMAVERA</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="crt-overlay"></div>
+<div class="scan-flash"></div>
+<div class="vignette"></div>
+
+<div class="wrap" id="main-ui">
+
+  <div class="header">
+    <span>FILE_ID: PRIMAVERA_01</span>
+    <span id="clock">--:--:--</span>
+  </div>
+
+  <div class="boot-msg" id="boot-msg">SIGNAL_ACQUIRED...</div>
+  <div class="section-label">> INTERCEPTED_TRANSMISSION</div>
+
+  <div class="enigma-block">
+    <div class="enigma-plain"></div>
+
+    <div class="enigma-cipher">
+      Od ulvsrvwd è vhpsuh vwdwd txl.<br>
+      Jxdugd gl qxryr.
+    </div>
+
+    <div class="enigma-numbers">
+      37 &nbsp; 17 &nbsp; 3 &nbsp; 25 &nbsp; 9 &nbsp; 20
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <div class="input-area">
+    <div class="input-row">
+      <span class="prefix">></span>
+      <input type="text" id="ans" placeholder="PASS" autocomplete="off" spellcheck="false" />
+    </div>
+    <button onclick="check()">VALIDATE_IDENTITY</button>
+  </div>
+
+  <div class="status-msg" id="msg"></div>
+
+  <div class="signature">Φ 1618</div>
+
+  <a class="qr-link" href="seasons.html">[ VIEW_SIGNAL_PROGRESS ]</a>
+
+  <div class="footer">
+    <span>KEY_ID: 0x1618</span>
+    <span id="node">NODE: --</span>
+  </div>
+
+</div>
+
+<div class="success-screen" id="success">
+  <div id="piece-notice">PRIMAVERA<br>COMPLETATA</div>
+</div>
+
+<div class="cube-reveal-screen" id="cube-reveal">
+  <div class="cube" id="cube-reveal-visual" data-state="corrupted">
+    <div class="cube-back"></div>
+    <div class="cube-front"></div>
+  </div>
+  <div class="cube-reveal-caption">PRIMAVERA STABILIZZATA</div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  const PIECE_NUMBER   = 1;
+  const SOLUTION_HASH  = "b0a868d1e0881f3f0735e2d5d98918462c88f55d8c56fb8e74bc910e3cec4334";
+  const NEXT_URL       = "seasons.html?piece=1";
+  const REDIRECT_DELAY = 4000;
+
+  const CUBE_NAME   = 'spring';
+  const SECRET_HASH = "a03a3964b246495d86b6cce0fbab7f0c4a1bafca0a2633e8cdb9d0f4e67446c7"; // IGNORARE1618
+
+  const POEM_PLAIN =
+    "Benvenuti.\nQuesto è un esperimento sociale.\nIl suo scopo: trovare gli individui più intelligenti.\nNon cerchiamo chiunque.\nCerchiamo coloro che vedono ciò che altri scelgono di ignorare.\nBuona fortuna.";
+
+  runDecode(
+    "Ehqyhqxwl.\nTxhvwr è xq hvshulphqwr vrfldoh.\nLo vxr vfrsr: wuryduh jol lqglylgxl slù lqwhooljhqwl.\nQrq fhufkldpr fklxqtxh.\nFhufkldpr frorur fkh yhgrqr flò fkh dowul vfhojrqr gl ljqruduh.\nExrqd iruwxqd.",
+    POEM_PLAIN,
+    '.enigma-plain'
+  );
+
+  markSecretWord('.enigma-plain', POEM_PLAIN, 'IGNORARE', POEM_PLAIN.length * 40 + 1500);
+</script>
+
+</body>
+</html>

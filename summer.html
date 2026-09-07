@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERMINAL // ESTATE</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="crt-overlay"></div>
+<div class="scan-flash"></div>
+<div class="vignette"></div>
+
+<div class="wrap" id="main-ui">
+
+  <div class="header">
+    <span>FILE_ID: ESTATE_02</span>
+    <span id="clock">--:--:--</span>
+  </div>
+
+  <div class="boot-msg" id="boot-msg">TRACCIA_SUCCESSIVA...</div>
+  <div class="section-label">> INTERCEPTED_TRANSMISSION</div>
+
+  <div class="enigma-block">
+    <div class="enigma-plain"></div>
+
+    <div class="attachment-row">
+      <span class="attachment-label">ALLEGATO: assets/ratio.jpg</span>
+      <button onclick="openAttachment()">VISUALIZZA</button>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <div class="input-area">
+    <div class="input-row">
+      <span class="prefix">></span>
+      <input type="text" id="ans" placeholder="PASS" autocomplete="off" spellcheck="false" />
+    </div>
+    <button onclick="check()">VALIDATE_IDENTITY</button>
+  </div>
+
+  <div class="status-msg" id="msg"></div>
+
+  <div class="signature">Φ 1618</div>
+
+  <a class="qr-link" href="seasons.html">[ VIEW_SIGNAL_PROGRESS ]</a>
+
+  <div class="footer">
+    <span>KEY_ID: 0x1618</span>
+    <span id="node">NODE: --</span>
+  </div>
+
+</div>
+
+<div class="attachment-overlay" id="attachment-overlay">
+  <div class="attachment-frame">
+    <div class="scan-sweep"></div>
+    <img id="attachment-img" src="assets/ratio.jpg" alt="allegato">
+  </div>
+  <div class="attachment-caption" id="attachment-caption">&gt; ratio.jpg [ANALISI_COMPLETATA]</div>
+  <div class="attachment-actions">
+    <button onclick="closeAttachment()">CHIUDI</button>
+    <a href="assets/ratio.jpg" download="ratio.jpg"><button>SCARICA</button></a>
+  </div>
+</div>
+
+<div class="success-screen" id="success">
+  <div id="piece-notice">ESTATE<br>COMPLETATA</div>
+</div>
+
+<div class="cube-reveal-screen" id="cube-reveal">
+  <div class="cube" id="cube-reveal-visual" data-state="corrupted">
+    <div class="cube-back"></div>
+    <div class="cube-front"></div>
+  </div>
+  <div class="cube-reveal-caption">ESTATE STABILIZZATA</div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  const PIECE_NUMBER   = 2;
+  const SOLUTION_HASH  = "c672f6be2ebe720484b659089b0b0ac3acdde5fbe0ba11e6231559f09611b1bc";
+  const NEXT_URL       = "seasons.html?piece=2";
+  const REDIRECT_DELAY = 4000;
+
+  const CUBE_NAME   = 'summer';
+  const SECRET_HASH = "23f34669524f37cf559819aa39fdc148e5c7b686160027ea49547205ffc2e1f8"; // CHIAVE1618
+
+  const POEM_PLAIN =
+    "Un passo è compiuto,\nla strada continua.\nIl percorso che attende è silenzioso, e chi non guarda bene non lo vedrà mai.\nDue numeri si nascondono in bella vista. Solo chi guarda oltre la superficie saprà trovarli.\nIl loro prodotto è la tua chiave.\nPensa fuori dagli schemi per andare avanti.";
+
+  runDecode(
+    "Xq sdvvr è frpslxwr,\nod vwudgd frqwlqxd.\nLo shufruvr fkh dwwhqgh è vlohqclrvr, h fkl qrq jxdugd ehqh qrq or yhguà pdl.\nGxh qxphul vl qdvfrqgrqr lq ehood ylvwd. Vror fkl jxdugd rowuh od vxshuilflh vdsuà wuryduol.\nLo orur surgrwwr è od wxd fkldyh.\nShqvd ixrul gdjol vfkhpl shu dqgduh dydqwl.",
+    POEM_PLAIN,
+    '.enigma-plain'
+  );
+
+  markSecretWord('.enigma-plain', POEM_PLAIN, 'CHIAVE', POEM_PLAIN.length * 40 + 1500);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERMINAL // MATRIX_PROGRESS</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="crt-overlay"></div>
+<div class="scan-flash"></div>
+<div class="vignette"></div>
+
+<div class="wrap">
+
+  <div class="header">
+    <span>FILE_ID: QR_MATRIX</span>
+    <span id="clock">--:--:--</span>
+  </div>
+
+  <div class="boot-msg">DECRYPTING_FRAGMENT...</div>
+  <div class="section-label">> REBUILD THE SIGNAL</div>
+
+  <div class="qr-container" id="qr-container">
+    <canvas id="qr-canvas" width="230" height="230"></canvas>
+    <div class="qr-grid-lines partial" id="grid-lines"></div>
+    <div class="quad-lock" data-q="1">BLOCCATO</div>
+    <div class="quad-lock" data-q="2">BLOCCATO</div>
+    <div class="quad-lock" data-q="3">BLOCCATO</div>
+    <div class="quad-lock" data-q="4">BLOCCATO</div>
+    <div class="qr-shield" id="qr-shield"></div>
+  </div>
+
+  <div class="progress-row">
+    <span id="progress-label">0/4</span>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <span>FRAGMENTS</span>
+  </div>
+
+  <div class="status-msg centered" id="status-msg"></div>
+  <div class="complete-msg" id="complete-msg">COMPLIMENTI — SEGNALE RICOMPOSTO</div>
+
+  <a class="qr-link back" href="spring.html" id="back-link">[ ← RETURN_TO_ENIGMA ]</a>
+
+  <div class="footer">
+    <span>KEY_ID: 0x1618</span>
+    <span id="node">NODE: --</span>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="script.js"></script>
+<script>
+  const PIECE_MESSAGES = {
+    1: "FRAMMENTO_1 DECRITTATO",
+    2: "FRAMMENTO_2 DECRITTATO",
+    3: "FRAMMENTO_3 DECRITTATO",
+    4: "FRAMMENTO_4 DECRITTATO — SEGNALE COMPLETO",
+  };
+  /* Link WhatsApp offuscato via XOR (reversibile — serve poterlo
+     ricostruire per generare il QR). Se il link del gruppo cambia,
+     va rigenerata anche questa stringa insieme alla chiave. */
+  const _linkHex = '3b3d333e3276706426313e4456465e504c2028373e6f2f30266a130571497079757f6402727c19741e0c166c0f0333540942053025613e7c2d7926292c6204';
+  const _key = 'SIGNAL_KEY_0x1618';
+
+  const shield    = document.getElementById('qr-shield');
+  const container = document.getElementById('qr-container');
+  ['contextmenu', 'dragstart', 'selectstart'].forEach(ev => {
+    container.addEventListener(ev, e => e.preventDefault());
+    shield.addEventListener(ev, e => e.preventDefault());
+  });
+
+  const canvas = document.getElementById('qr-canvas');
+  const ctx    = canvas.getContext('2d');
+  const W = 230, H = 230;
+  let realQrCanvas = null;
+
+  let unlockedPieces = [];
+
+  // Genera il QR reale (dal link WhatsApp decriptato) su un canvas
+  // offscreen, che non finisce mai nel DOM visibile o nell'HTML.
+  function buildRealQR(callback) {
+    const tmp = document.createElement('div');
+    tmp.style.display = 'none';
+    document.body.appendChild(tmp);
+    new QRCode(tmp, {
+      text: xorDecrypt(_linkHex, _key),
+      width: W, height: H,
+      colorDark: '#000000', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+    const raw = tmp.querySelector('canvas');
+    const offscreen = document.createElement('canvas');
+    offscreen.width = W; offscreen.height = H;
+    offscreen.getContext('2d').drawImage(raw, 0, 0);
+    realQrCanvas = offscreen;
+    document.body.removeChild(tmp);
+    callback();
+  }
+
+  function drawCanvas(unlocked) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, W, H);
+
+    if (!realQrCanvas) return;
+
+    const quadrants = [
+      { piece: 1, dx: 0,   dy: 0   },
+      { piece: 2, dx: W/2, dy: 0   },
+      { piece: 3, dx: 0,   dy: H/2 },
+      { piece: 4, dx: W/2, dy: H/2 },
+    ];
+
+    quadrants.forEach(({ piece, dx, dy }) => {
+      if (!unlocked.includes(piece)) return;
+      ctx.drawImage(realQrCanvas, dx, dy, W/2, H/2, dx, dy, W/2, H/2);
+
+      // Tinta gold, coerente con l'estetica del terminale
+      const imageData = ctx.getImageData(dx, dy, W/2, H/2);
+      const data = imageData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
+        const inv  = 255 - gray;
+        data[i]   = Math.min(255, inv * 0.941);
+        data[i+1] = Math.min(255, inv * 0.769);
+        data[i+2] = Math.min(255, inv * 0.098);
+      }
+      ctx.putImageData(imageData, dx, dy);
+    });
+  }
+
+  function getSaved() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
+  }
+  function save(arr) { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+
+  function getPieceFromURL() {
+    const n = parseInt(new URLSearchParams(window.location.search).get('piece'));
+    return (n >= 1 && n <= 4) ? n : null;
+  }
+
+  function unlockQuad(n, animate) {
+    const lock = document.querySelector(`.quad-lock[data-q="${n}"]`);
+    if (!lock || lock.classList.contains('unlocked')) return;
+    if (animate) {
+      lock.classList.add('revealing');
+      setTimeout(() => {
+        lock.classList.remove('revealing');
+        lock.classList.add('unlocked');
+        drawCanvas(unlockedPieces);
+      }, 650);
+    } else {
+      lock.classList.add('unlocked');
+    }
+  }
+
+  function updateProgress(unlocked) {
+    const count = unlocked.length;
+    document.getElementById('progress-label').textContent = `${count}/4`;
+    setTimeout(() => {
+      document.getElementById('progress-fill').style.width = `${(count / 4) * 100}%`;
+    }, 300);
+
+    if (count >= 4) {
+      document.getElementById('grid-lines').classList.remove('partial');
+      setTimeout(() => {
+        document.getElementById('complete-msg').style.display = 'block';
+        document.getElementById('status-msg').style.display   = 'none';
+      }, 1200);
+    }
+  }
+
+  window.addEventListener('load', () => {
+    buildRealQR(() => {
+      unlockedPieces = getSaved();
+      const newPiece = getPieceFromURL();
+
+      unlockedPieces.forEach(n => unlockQuad(n, false));
+      drawCanvas(unlockedPieces);
+
+      if (newPiece && !unlockedPieces.includes(newPiece)) {
+        setTimeout(() => {
+          unlockedPieces.push(newPiece);
+          save(unlockedPieces);
+          unlockQuad(newPiece, true);
+          updateProgress(unlockedPieces);
+          const msg = document.getElementById('status-msg');
+          msg.textContent = `>> ${PIECE_MESSAGES[newPiece]}`;
+          msg.style.color = 'var(--primary)';
+        }, 800);
+      } else {
+        updateProgress(unlockedPieces);
+        if (unlockedPieces.length > 0 && unlockedPieces.length < 4) {
+          const n = unlockedPieces.length;
+          document.getElementById('status-msg').textContent =
+            `>> ${n} FRAMMENTO${n > 1 ? 'I' : ''} RECUPERAT${n > 1 ? 'I' : 'O'}`;
+        }
+      }
+
+      if (newPiece) window.history.replaceState({}, '', window.location.pathname);
+
+      const backLink = document.getElementById('back-link');
+      const nextPage = getCurrentEnigmaPage();
+      if (nextPage === 'seasons.html') {
+        backLink.style.display = 'none';
+      } else {
+        backLink.href = nextPage;
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

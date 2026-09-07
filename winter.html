@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERMINAL // INVERNO</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="crt-overlay"></div>
+<div class="scan-flash"></div>
+<div class="vignette"></div>
+
+<div class="wrap" id="main-ui">
+
+  <div class="header">
+    <span>FILE_ID: INVERNO_04</span>
+    <span id="clock">--:--:--</span>
+  </div>
+
+  <div class="boot-msg" id="boot-msg">RICOMPOSIZIONE_IN_CORSO...</div>
+  <div class="section-label">> INTERCEPTED_TRANSMISSION</div>
+
+  <div class="enigma-block">
+    <div class="enigma-plain"></div>
+  </div>
+
+  <div class="cube-grid">
+    <div class="cube-item">
+      <div class="cube" id="cube-spring" data-state="corrupted">
+        <div class="cube-back"></div>
+        <div class="cube-front"></div>
+      </div>
+      <div class="cube-label">PRIMAVERA</div>
+    </div>
+    <div class="cube-item">
+      <div class="cube" id="cube-summer" data-state="corrupted">
+        <div class="cube-back"></div>
+        <div class="cube-front"></div>
+      </div>
+      <div class="cube-label">ESTATE</div>
+    </div>
+    <div class="cube-item">
+      <div class="cube" id="cube-autumn" data-state="corrupted">
+        <div class="cube-back"></div>
+        <div class="cube-front"></div>
+      </div>
+      <div class="cube-label">AUTUNNO</div>
+    </div>
+  </div>
+
+  <div class="confirm-overlay" id="confirm-overlay">
+    <div class="confirm-box">
+      <div class="confirm-text" id="confirm-text">Tornare a PRIMAVERA?</div>
+      <div class="confirm-actions">
+        <button onclick="confirmYes()">PROCEDI</button>
+        <button onclick="confirmNo()">ANNULLA</button>
+      </div>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <button id="ristabilizza-btn" onclick="startFinalReveal()">RISTABILIZZA_SEGNALE</button>
+
+  <div class="final-reveal" id="final-reveal">
+    <div class="final-reveal-text" id="final-reveal-text"></div>
+  </div>
+
+  <div class="input-area" id="final-unlock" style="display:none;">
+    <div class="input-row">
+      <span class="prefix">></span>
+      <input type="text" id="ans" placeholder="PASS" autocomplete="off" spellcheck="false" />
+    </div>
+    <button onclick="check()">VALIDATE_IDENTITY</button>
+  </div>
+
+  <div class="status-msg" id="msg"></div>
+
+  <div class="signature">Φ 1618</div>
+
+  <a class="qr-link" href="seasons.html">[ VIEW_SIGNAL_PROGRESS ]</a>
+
+  <div class="footer">
+    <span>KEY_ID: 0x1618</span>
+    <span id="node">NODE: --</span>
+  </div>
+
+</div>
+
+<div class="success-screen" id="success">
+  <div id="piece-notice">INVERNO<br>COMPLETATO</div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  const PIECE_NUMBER   = 4;
+  const SOLUTION_HASH  = "ae92bee5080ffa3533774ef98ec7858b08a02fed6778ab5d2043d0c64028e2d6"; // hash di "1618"
+  const NEXT_URL       = "seasons.html?piece=4";
+  const REDIRECT_DELAY = 4000;
+
+  runDecode(
+    "Qho wxr shufruvr, dofxqh sduroh vl glvwdffdydqr gd dowuh.\nTxhvwh, vhjxlwh gdooh txdwwur fliuh fkh wl kdqqr dffrpsdjqdwr ilqrud, vrqr od wxd fkldyh.\nOd wxd xowlpd vroxclrqh, è qho plr qrph.",
+    "Nel tuo percorso, alcune parole si distaccavano da altre.\nQueste, seguite dalle quattro cifre che ti hanno accompagnato finora, sono la tua chiave.\nLa tua ultima soluzione, è nel mio nome.",
+    '.enigma-plain'
+  );
+
+  /* ==========================================================
+     GESTIONE DEI TRE CUBI
+     ========================================================== */
+  const CUBES = ['spring', 'summer', 'autumn'];
+  const SEASON_LABELS = { spring: 'PRIMAVERA', summer: 'ESTATE', autumn: 'AUTUNNO' };
+  const SEASON_PAGES  = { spring: 'spring.html', summer: 'summer.html', autumn: 'autumn.html' };
+  let pendingSeason = null;
+
+  function openConfirm(name) {
+    pendingSeason = name;
+    document.getElementById('confirm-text').textContent = `Tornare a ${SEASON_LABELS[name]}?`;
+    document.getElementById('confirm-overlay').classList.add('active');
+  }
+  function confirmYes() {
+    if (pendingSeason) window.location.href = SEASON_PAGES[pendingSeason];
+  }
+  function confirmNo() {
+    document.getElementById('confirm-overlay').classList.remove('active');
+    pendingSeason = null;
+  }
+
+  function applyStoredState(exclude) {
+    const purified = getPurifiedCubes();
+    CUBES.forEach(name => {
+      if (name === exclude) return;
+      const el = document.getElementById('cube-' + name);
+      el.dataset.state = purified.includes(name) ? 'pure' : 'corrupted';
+    });
+  }
+
+  function checkAllPure() {
+    const purified = getPurifiedCubes();
+    const allDone = CUBES.every(c => purified.includes(c));
+    document.getElementById('ristabilizza-btn').style.display = allDone ? 'block' : 'none';
+  }
+
+  // Click sul cubo: se è ancora corrotto, apre la conferma per tornare
+  // alla stagione; se è già puro, rivive la trasformazione.
+  CUBES.forEach(name => {
+    document.getElementById('cube-' + name).addEventListener('click', () => {
+      const el = document.getElementById('cube-' + name);
+      if (el.dataset.state === 'pure') {
+        el.dataset.state = 'corrupted';
+        void el.offsetWidth;
+        playCubePurify(el);
+      } else {
+        openConfirm(name);
+      }
+    });
+  });
+
+  const params = new URLSearchParams(window.location.search);
+  const incomingCube = params.get('cube');
+
+  if (incomingCube && CUBES.includes(incomingCube)) {
+    applyStoredState(incomingCube);
+    purifyCube(incomingCube);
+
+    const el = document.getElementById('cube-' + incomingCube);
+    el.dataset.state = 'corrupted';
+
+    setTimeout(() => {
+      playCubePurify(el, checkAllPure);
+    }, 700);
+
+    window.history.replaceState({}, '', window.location.pathname);
+  } else {
+    applyStoredState(null);
+    checkAllPure();
+  }
+
+  /* ==========================================================
+     RIVELAZIONE FINALE — "IO SONO 1618" che si materializza
+     tra caratteri casuali, come un segnale che si stabilizza.
+     ========================================================== */
+  function revealFinalPhrase(elId, phrase, duration, onDone) {
+    const el = document.getElementById(elId);
+    const charset = "!<>-_/\\[]{}=+*^?#%$&@0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const chars = [...phrase];
+    const locked = new Array(chars.length).fill(false);
+    const startTime = Date.now();
+
+    const interval = setInterval(() => {
+      const progress = Math.min(1, (Date.now() - startTime) / duration);
+      const shouldLock = Math.floor(progress * chars.length);
+
+      let display = '';
+      for (let i = 0; i < chars.length; i++) {
+        if (chars[i] === ' ') { display += ' '; continue; }
+        if (i < shouldLock) locked[i] = true;
+        display += locked[i] ? chars[i] : charset[Math.floor(Math.random() * charset.length)];
+      }
+      el.textContent = display;
+
+      if (progress >= 1) {
+        clearInterval(interval);
+        el.textContent = phrase;
+        onDone && onDone();
+      }
+    }, 60);
+  }
+
+  function startFinalReveal() {
+    document.getElementById('ristabilizza-btn').style.display = 'none';
+    document.getElementById('final-reveal').style.display = 'block';
+    revealFinalPhrase('final-reveal-text', 'IO SONO 1618', 3200, () => {
+      document.getElementById('final-unlock').style.display = 'flex';
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERMINAL // AUTUNNO</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="crt-overlay"></div>
+<div class="scan-flash"></div>
+<div class="vignette"></div>
+
+<div class="wrap" id="main-ui">
+
+  <div class="header">
+    <span id="hdr-fileid">FILE_ID: AUTUNNO_03</span>
+    <span id="clock">--:--:--</span>
+  </div>
+
+  <div class="boot-msg" id="boot-msg">CONSOLE_RILEVATA...</div>
+  <div class="section-label" id="section-label">> INTERCEPTED_TRANSMISSION</div>
+
+  <div class="enigma-block">
+    <div class="enigma-plain"></div>
+
+    <div class="console-wrap">
+      <div class="crt-monitor" id="crt-monitor">
+        <div class="crt-screen" id="crt-screen"></div>
+      </div>
+
+      <div class="channel-controls">
+        <button onclick="prevChannel()">◀ CANALE</button>
+        <button onclick="nextChannel()">CANALE ▶</button>
+      </div>
+
+      <div class="console-msg" id="console-msg"></div>
+
+      <div class="rune-dial-panel" id="rune-dial-panel"></div>
+      <button id="confirm-runes-btn" onclick="confirmRunes()">CONFERMA_SEQUENZA</button>
+
+      <div class="final-panel" id="final-panel"></div>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <div class="input-area">
+    <div class="input-row">
+      <span class="prefix">></span>
+      <input type="text" id="ans" placeholder="PASS" autocomplete="off" spellcheck="false" />
+    </div>
+    <button onclick="check()">VALIDATE_IDENTITY</button>
+  </div>
+
+  <div class="status-msg" id="msg"></div>
+
+  <div class="signature" id="footer-signature">Φ 1618</div>
+
+  <a class="qr-link" id="qr-link" href="seasons.html">[ VIEW_SIGNAL_PROGRESS ]</a>
+
+  <div class="footer">
+    <span id="footer-keyid">KEY_ID: 0x1618</span>
+    <span id="node">NODE: --</span>
+  </div>
+
+</div>
+
+<div class="success-screen" id="success">
+  <div id="piece-notice">AUTUNNO<br>COMPLETATA</div>
+</div>
+
+<div class="cube-reveal-screen" id="cube-reveal">
+  <div class="cube" id="cube-reveal-visual" data-state="corrupted">
+    <div class="cube-back"></div>
+    <div class="cube-front"></div>
+  </div>
+  <div class="cube-reveal-caption">AUTUNNO STABILIZZATO</div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  const PIECE_NUMBER   = 3;
+  const SOLUTION_HASH  = "cf42e790e49a422bac66c90511c7d5c6bd035cdb04d7c9a4a340710cc71519cd"; // hash di "ECLISSI"
+  const NEXT_URL       = "seasons.html?piece=3";
+  const REDIRECT_DELAY = 4000;
+
+  const CUBE_NAME   = 'autumn';
+  const SECRET_HASH = "8b65e7f5a603d3a172931270e82c5ba7b6350a14f5fa8b11e2931a974ec4c492"; // INVISIBILI1618
+
+  const POEM_PLAIN =
+    "Ci sono simboli nel nostro mondo che non tutti vedono.\nSembrano invisibili, eppure sono sempre presenti.\nApri gli occhi e usa la mente.\nLa soluzione che cerchi è davanti a te.";
+
+  runDecode(
+    "Fl vrqr vlperol qho qrvwur prqgr fkh qrq wxwwl yhgrqr.\nVhpeudqr lqylvlelol, hssxuh vrqr vhpsuh suhvhqwl.\nDsul jol rffkl h xvd od phqwh.\nOd vroxclrqh fkh fhufkl è gdydqwl d wh.",
+    POEM_PLAIN,
+    '.enigma-plain'
+  );
+
+  markSecretWord('.enigma-plain', POEM_PLAIN, 'INVISIBILI', POEM_PLAIN.length * 40 + 1500);
+
+  /* ==========================================================
+     ALFABETO RUNICO — Futhark antico (Unicode reale).
+     La runa di I è stata scelta più leggibile del classico
+     singolo tratto verticale (troppo poco visibile in interfaccia).
+     ========================================================== */
+  const RUNES = {
+    A:'ᚨ', B:'ᛒ', C:'ᚲ', D:'ᛞ', E:'ᛖ', F:'ᚠ', G:'ᚷ', H:'ᚺ', I:'ᛝ', J:'ᛃ',
+    K:'ᚲ', L:'ᛚ', M:'ᛗ', N:'ᚾ', O:'ᛟ', P:'ᛈ', Q:'ᚲ', R:'ᚱ', S:'ᛊ', T:'ᛏ',
+    U:'ᚢ', V:'ᚹ', W:'ᚹ', X:'ᛉ', Y:'ᛇ', Z:'ᛉ'
+  };
+  const DIAL_RUNES = [...new Set(Object.values(RUNES))]; // simboli unici per le manopole
+  const ANSWER = "ECLISSI";
+  const NEEDED_LETTERS = new Set([...ANSWER]); // E, C, L, I, S
+
+  /* ==========================================================
+     GLITCH PASSIVO — a intervalli casuali, un carattere a caso
+     tra quelli già presenti nell'interfaccia (o nel testo della
+     trasmissione, una volta decodificato) diventa per un istante
+     la runa corrispondente, poi torna alla lettera. Le lettere
+     utili a "ECLISSI" vengono favorite ma non garantite sempre,
+     per non essere un indizio troppo scoperto. La primissima
+     rivelazione è sempre la E, per dare un punto di partenza certo.
+     ========================================================== */
+  function wrapChars(selector) {
+    document.querySelectorAll(selector).forEach(el => {
+      const text = el.textContent;
+      el.textContent = '';
+      [...text].forEach(ch => {
+        const span = document.createElement('span');
+        span.className = 'ch';
+        span.textContent = ch;
+        span.dataset.letter = ch;
+        el.appendChild(span);
+      });
+    });
+  }
+
+  [
+    '#hdr-fileid', '#boot-msg', '#section-label',
+    '#footer-signature', '#qr-link', '#footer-keyid', '#node',
+    '.channel-controls button', '#confirm-runes-btn'
+  ].forEach(wrapChars);
+
+  function collectGlitchCandidates() {
+    const chSpans = Array.from(document.querySelectorAll('.ch'));
+    const poemSpans = Array.from(document.querySelectorAll('.enigma-plain .char'))
+      .filter(s => s.classList.contains('decoded'));
+    return [...chSpans, ...poemSpans].filter(s => /[A-Za-z]/.test(s.dataset.letter || ''));
+  }
+
+  function doGlitch(span) {
+    const letter = span.dataset.letter.toUpperCase();
+    const rune = RUNES[letter];
+    if (!rune) return;
+    span.textContent = rune;
+    span.classList.add('rune-active');
+    setTimeout(() => {
+      span.textContent = span.dataset.letter;
+      span.classList.remove('rune-active');
+    }, 1800);
+  }
+
+  function runeGlitchTick() {
+    const candidates = collectGlitchCandidates();
+    if (candidates.length) {
+      const needed = candidates.filter(s => NEEDED_LETTERS.has(s.dataset.letter.toUpperCase()));
+      const pool = (needed.length && Math.random() < 0.65) ? needed : candidates;
+      doGlitch(pool[Math.floor(Math.random() * pool.length)]);
+    }
+    setTimeout(runeGlitchTick, 2500 + Math.random() * 3500);
+  }
+
+  // la primissima rivelazione è sempre la E, per dare un ancoraggio certo
+  function firstGlitch() {
+    const candidates = collectGlitchCandidates();
+    const eCandidates = candidates.filter(s => s.dataset.letter.toUpperCase() === 'E');
+    if (eCandidates.length) {
+      doGlitch(eCandidates[Math.floor(Math.random() * eCandidates.length)]);
+    }
+    setTimeout(runeGlitchTick, 2500 + Math.random() * 3500);
+  }
+  setTimeout(firstGlitch, 3000);
+
+  /* ==========================================================
+     CANALI — 24 sequenze runiche. I decoy sono lunghi 6 o 8
+     simboli, solo il segnale vero ne ha 7 come "ECLISSI":
+     la lunghezza da sola non basta a riconoscerlo, va comunque
+     letto. Nessun tasto di conferma: nessun oracolo giusto/sbagliato,
+     sei tu a dover riconoscere il canale valido.
+     ========================================================== */
+  const CHANNELS = [
+    'ᚢᛒᚾᛗᚾᛝᚲᛏ','ᚨᛟᛚᚱᚨᛟ','ᛈᛖᚲᛒᚠᛖ','ᛊᚨᛚᛖᛟᚲ','ᛈᛒᛟᚢᚱᛞᚱᛗ',
+    'ᚠᚲᚲᛞᛚᚷᚾᚱ','ᛗᛒᚨᛟᚱᚨᚾᚷ','ᚾᛒᛊᚠᚷᛈᛈᚲ','ᛞᚱᚱᛒᛚᚢ','ᛗᛖᛞᛝᛟᚾ',
+    'ᚲᚲᛒᛚᚠᚱᛊᛒ','ᛈᚱᚨᚷᚱᛊᛚᚾ','ᚱᚲᛝᛟᛚᚨ','ᚠᛚᛚᛝᚢᛟ','ᛒᚲᛞᛒᛈᚢ',
+    'ᛝᛏᛏᛊᚢᛊᚷᛟ','ᛖᚲᛚᛝᛊᛊᛝ','ᛒᚢᚲᛈᛖᛗ','ᚢᚲᛗᚠᚢᛊ','ᚱᛈᛟᚱᚾᚾᛒᛗ',
+    'ᚲᚱᛈᛈᚱᚲᛈᚾ','ᛖᚷᚢᚲᛝᚷᛚᚾ','ᚲᛖᚾᚨᛊᚷ','ᚲᛚᛏᛞᚲᛚ'
+  ];
+
+  let currentChannel = 0;
+  let dialState = new Array(ANSWER.length).fill(0);
+
+  function renderChannel() {
+    const monitor = document.getElementById('crt-monitor');
+    const screen  = document.getElementById('crt-screen');
+    screen.textContent = CHANNELS[currentChannel];
+    monitor.classList.remove('glitching');
+    void monitor.offsetWidth;
+    monitor.classList.add('glitching');
+  }
+
+  function prevChannel() {
+    currentChannel = (currentChannel + CHANNELS.length - 1) % CHANNELS.length;
+    renderChannel();
+  }
+  function nextChannel() {
+    currentChannel = (currentChannel + 1) % CHANNELS.length;
+    renderChannel();
+  }
+
+  function flashConsoleMsg(text) {
+    const msg = document.getElementById('console-msg');
+    msg.textContent = text;
+    setTimeout(() => { msg.textContent = ''; }, 1800);
+  }
+
+  /* ==========================================================
+     MANOPOLE RUNICHE — sempre attive fin dal caricamento.
+     Ognuna cicla tra i simboli disponibili: vanno impostate a
+     mano usando l'alfabeto ricostruito osservando il glitch.
+     ========================================================== */
+  function buildDials() {
+    const panel = document.getElementById('rune-dial-panel');
+    panel.innerHTML = '';
+    for (let i = 0; i < ANSWER.length; i++) {
+      const dial = document.createElement('div');
+      dial.className = 'rune-dial';
+      dial.id = 'dial-' + i;
+      dial.textContent = DIAL_RUNES[0];
+      dial.onclick = () => cycleDial(i);
+      panel.appendChild(dial);
+    }
+  }
+
+  function cycleDial(i) {
+    dialState[i] = (dialState[i] + 1) % DIAL_RUNES.length;
+    document.getElementById('dial-' + i).textContent = DIAL_RUNES[dialState[i]];
+  }
+
+  function confirmRunes() {
+    const attempt = dialState.map(i => DIAL_RUNES[i]).join('');
+    const target  = [...ANSWER].map(c => RUNES[c]).join('');
+    if (attempt === target) {
+      const panel = document.getElementById('final-panel');
+      panel.innerHTML = `SEGNALE_CONFERMATO<br><span class="cipher-block" id="cipher-block"></span>`;
+      const block = document.getElementById('cipher-block');
+      [...ANSWER].forEach(letter => {
+        const span = document.createElement('span');
+        span.className = 'corrupt-char';
+        span.textContent = RUNES[letter];
+        span.dataset.trueLetter = letter;
+        block.appendChild(span);
+      });
+      panel.classList.add('visible');
+      setTimeout(() => startCorruption(block), 2500);
+    } else {
+      flashConsoleMsg('>> sequenza errata');
+    }
+  }
+
+  function startCorruption(block) {
+    setInterval(() => {
+      Array.from(block.children).forEach(span => {
+        if (Math.random() < 0.15) {
+          span.textContent = span.dataset.trueLetter;
+          span.classList.add('corrupt-letter-flash');
+        } else {
+          span.textContent = DIAL_RUNES[Math.floor(Math.random() * DIAL_RUNES.length)];
+          span.classList.remove('corrupt-letter-flash');
+        }
+      });
+    }, 180);
+  }
+
+  renderChannel();
+  buildDials();
+</script>
+
+</body>
+</html>

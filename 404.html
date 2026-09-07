@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>&nbsp;</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      filter: brightness(0.62);
+      animation: dread 9s ease-in-out infinite;
+    }
+    @keyframes dread {
+      0%, 100% { filter: brightness(0.62); }
+      45%      { filter: brightness(0.62); }
+      50%      { filter: brightness(0.4); }
+      55%      { filter: brightness(0.62); }
+      88%      { filter: brightness(0.5); }
+    }
+
+    .lost-wrap {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 22px; width: 88%; max-width: 420px;
+      text-align: center;
+    }
+
+    .lost-phi {
+      font-size: clamp(56px, 16vw, 96px);
+      color: #4a0c0a;
+      text-shadow: 0 0 26px rgba(100,10,8,0.4);
+      animation: lostPulse 4.6s ease-in-out infinite, lostGlitch 6.5s infinite;
+    }
+    @keyframes lostPulse {
+      0%, 100% { opacity: 0.6; }
+      50%      { opacity: 0.22; }
+    }
+    @keyframes lostGlitch {
+      0%, 93%  { transform: translate(0,0) skew(0deg); filter: none; }
+      94%      { transform: translate(-5px, 2px) skew(-2deg); filter: brightness(2.4); }
+      95%      { transform: translate(4px, -3px) skew(2deg); filter: brightness(0.1); }
+      96%      { transform: translate(-3px, 1px); }
+      97.5%    { transform: translate(3px, -1px); filter: brightness(1.8); }
+      99%,100% { transform: translate(0,0) skew(0deg); filter: none; }
+    }
+
+    .lost-line {
+      font-family: 'Fira Code', monospace;
+      font-size: 13px; line-height: 2;
+      color: #6a5a4a; letter-spacing: 0.5px;
+      opacity: 0;
+      animation: lostFadeIn 2.2s ease forwards;
+    }
+    .lost-line.l1 { animation-delay: 0.6s; }
+    .lost-line.l2 { animation-delay: 2.8s; color: #4a3d33; }
+    .lost-line.l3 { animation-delay: 5.4s; color: #35291f; font-size: 11px; }
+    @keyframes lostFadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .lost-static {
+      position: fixed; inset: 0; z-index: 50;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px,
+        transparent 1px, transparent 2px
+      );
+      animation: staticJitter 0.1s steps(2) infinite;
+    }
+    @keyframes staticJitter {
+      0%   { transform: translateY(0); }
+      50%  { transform: translateY(1px); }
+      100% { transform: translateY(0); }
+    }
+
+    /* la vignetta si stringe piano, come se l'aria mancasse */
+    .vignette.creeping {
+      animation: vignetteCreep 22s ease-in-out infinite alternate;
+    }
+    @keyframes vignetteCreep {
+      from { background: radial-gradient(circle, transparent 32%, rgba(20,14,3,0.45) 65%, rgba(0,0,0,0.97) 100%); }
+      to   { background: radial-gradient(circle, transparent 16%, rgba(20,14,3,0.55) 55%, rgba(0,0,0,0.99) 100%); }
+    }
+
+    .lost-back {
+      margin-top: 6px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px; letter-spacing: 3px;
+      color: #35291f; text-decoration: none;
+      opacity: 0;
+      animation: lostFadeIn 2s ease 7.5s forwards;
+      transition: color 0.4s;
+    }
+    .lost-back:hover { color: #6a5a4a; }
+  </style>
+</head>
+<body>
+
+<div class="crt-overlay"></div>
+<div class="scan-flash"></div>
+<div class="vignette creeping"></div>
+<div class="lost-static"></div>
+
+<div class="lost-wrap">
+
+  <div class="lost-phi">Φ</div>
+
+  <div class="lost-line l1">non dovresti aver trovato questo posto.</div>
+  <div class="lost-line l2">nessuno verrà a cercarti, qui.</div>
+  <div class="lost-line l3">[ il segnale è morto da tempo ]<span class="cursor"></span></div>
+
+  <a class="lost-back" href="index.html">&gt; torna indietro, se riesci_</a>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
